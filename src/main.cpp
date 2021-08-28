@@ -6,14 +6,21 @@ void fallingCh1();
 void risingCh2();
 void fallingCh2();
 
+bool isIdle(int);
+void handleIdle();
+
 volatile int ch1_value = 0;
 volatile int ch1_prev_time = 0;
 
 volatile int ch2_value = 0;
 volatile int ch2_prev_time = 0;
 
-int deadband = 50;
-int centerSignal = 1500;
+const int deadband = 50;
+const int centerSignal = 1500;
+
+/** @todo figure out calibration **/
+int minInputSignal = 900;
+int maxInputSignal = 2100;
  
 int M1RPWM_Output = 5; // Arduino PWM output pin 5; connect to IBT-2 pin 1 (RPWM)
 int M1LPWM_Output = 6; // Arduino PWM output pin 6; connect to IBT-2 pin 2 (LPWM)
@@ -30,50 +37,84 @@ void setup()
   pinMode(M2LPWM_Output, OUTPUT);
 
   pinMode(13, OUTPUT);
-
   digitalWrite(13, HIGH);
 
-  Serial.begin(115200);
-  // when pin D2 goes high, call the rising function
+  // Serial.begin(115200);
+
   attachInterrupt(digitalPinToInterrupt(2), risingCh1, RISING);
   attachInterrupt(digitalPinToInterrupt(3), risingCh2, RISING);
+}
+ 
+void loop() 
+{
+  handleIdle();
+
+  /** Motor 1 **/
+  if(!isIdle(ch1_value)) {
+    if (ch1_value > 1500)
+    {
+      int motor1Value = map(ch1_value, 1500, maxInputSignal, 0, 255);
+      // reverse rotation
+      analogWrite(M1LPWM_Output, 0);
+      analogWrite(M1RPWM_Output, motor1Value);
+    }
+    else
+    {
+      int motor1Value = map(ch1_value, minInputSignal, 1500, 255, 0);
+      // forward rotation
+      analogWrite(M1RPWM_Output, 0);
+      analogWrite(M1LPWM_Output, motor1Value);
+    }
+  }
+  
+
+  /** Motor 2 **/
+  if(!isIdle(ch2_value)) {
+    if (ch2_value > 1500)
+    {
+      int motor2Value = map(ch2_value, 1500, maxInputSignal, 0, 255);
+      // reverse rotation
+      analogWrite(M2LPWM_Output, 0);
+      analogWrite(M2RPWM_Output, motor2Value);
+    }
+    else
+    {
+      int motor2Value = map(ch2_value, minInputSignal, 1500, 255, 0);
+      // forward rotation
+      analogWrite(M2RPWM_Output, 0);
+      analogWrite(M2LPWM_Output, motor2Value);
+    }
+  }
+  
 }
 
 bool isIdle(int channelValue) 
 {
   return channelValue > centerSignal - deadband && channelValue < centerSignal + deadband;
 }
- 
-void loop() 
-{
+
+/** 
+ * Reset values to 0 if sticks are in idle deadband
+ **/
+void handleIdle() {
   if(isIdle(ch1_value)) 
   {
     analogWrite(M1RPWM_Output, 0);
     analogWrite(M1LPWM_Output, 0);
   }
 
-  if (ch1_value > 1500)
+  if(isIdle(ch2_value)) 
   {
-    int motor1Value = map(ch1_value, 1500, 2100, 0, 256);
-    // reverse rotation
-    Serial.print("Motor 1 reverse ");
-    Serial.println(motor1Value);
-    analogWrite(M1LPWM_Output, 0);
-    analogWrite(M1RPWM_Output, motor1Value);
-  }
-  else
-  {
-    int motor1Value = map(ch1_value, 900, 1500, 256, 0);
-    // forward rotation
-    Serial.print("Motor 1 forward ");
-    Serial.println(motor1Value);
-    analogWrite(M1RPWM_Output, 0);
-    analogWrite(M1LPWM_Output, motor1Value);
+    analogWrite(M2RPWM_Output, 0);
+    analogWrite(M2LPWM_Output, 0);
   }
 }
 
-
-//INTERRUPT ROUTINES
+/******
+ * 
+ * INTERRUPT ROUTINES
+ * 
+ *****/
 void risingCh1() {
   attachInterrupt(digitalPinToInterrupt(2), fallingCh1, FALLING);
   ch1_prev_time = micros();
@@ -81,9 +122,7 @@ void risingCh1() {
 
 void fallingCh1() {
   attachInterrupt(digitalPinToInterrupt(2), risingCh1, RISING);
-  ch1_value = micros()-ch1_prev_time;
-  // Serial.print("CH1: ");
-  // Serial.println(ch1_value);
+  ch1_value = micros() - ch1_prev_time;
 }
 
 void risingCh2() {
@@ -93,7 +132,5 @@ void risingCh2() {
  
 void fallingCh2() {
   attachInterrupt(digitalPinToInterrupt(3), risingCh2, RISING);
-  ch2_value = micros()-ch2_prev_time;
-  Serial.print("CH2: ");
-  Serial.println(ch2_value);
+  ch2_value = micros() - ch2_prev_time;
 }
