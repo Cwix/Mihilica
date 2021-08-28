@@ -1,13 +1,5 @@
 #include <Arduino.h>
-
-void risingCh1();
-void fallingCh1();
-
-void risingCh2();
-void fallingCh2();
-
-bool isIdle(int);
-void handleIdle();
+#include "../include/header.h"
 
 volatile int ch1_value = 0;
 volatile int ch1_prev_time = 0;
