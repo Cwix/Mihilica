@@ -32,7 +32,7 @@ const int CH4 = 24;
 const int ENGINE_ENABLE_OUT = 7;
 const int STARTER_OUTPUT = 8;
 
-boolean throttleEnabled = 0;
+boolean engineEnabled = 0;
 
 void setup() 
 {
@@ -69,10 +69,10 @@ void loop()
   handleIdle();
 
   if(analogRead(CH3) > 700) {
-      throttleEnabled = 1;
+      engineEnabled = 1;
       digitalWrite(ENGINE_ENABLE_OUT, HIGH);
   } else {
-      throttleEnabled = 0;
+      engineEnabled = 0;
       digitalWrite(ENGINE_ENABLE_OUT, LOW);
   }
 
@@ -104,7 +104,7 @@ void loop()
   
 
   /** Motor 2 **/
-  if(!isIdle(ch2_value) && throttleEnabled) {
+  if(!isIdle(ch2_value) && engineEnabled) {
     if (ch2_value > 1500)
     {
       int motor2Value = map(ch2_value, 1500, ch2MaxInputSignal, 0, 255);
