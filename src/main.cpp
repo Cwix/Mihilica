@@ -65,7 +65,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(2), risingCh1, RISING);
   attachInterrupt(digitalPinToInterrupt(3), risingCh2, RISING);
 
-  Serial.println("Mihilica ready.");
+  Serial.println(F("Mihilica ready."));
 
   // calibrate();
 }
@@ -172,14 +172,14 @@ void calibrate() {
     }
   }
 
-  Serial.print("Channel 1 min: ");
+  Serial.print(F("Channel 1 min: "));
   Serial.println(ch1MinInputSignal);
-  Serial.print("Channel 1 max: ");
+  Serial.print(F("Channel 1 max: "));
   Serial.println(ch1MaxInputSignal);
 
-  Serial.print("Channel 2 min: ");
+  Serial.print(F("Channel 2 min: "));
   Serial.println(ch2MinInputSignal);
-  Serial.print("Channel 2 max: ");
+  Serial.print(F("Channel 2 max: "));
   Serial.println(ch2MaxInputSignal);
 
   // signal the end of the calibration period
