@@ -15,7 +15,7 @@ volatile int ch4_value = 0;
 const int deadband = 50;
 const int centerSignal = 1500;
 
-/**
+/**xx
  * Some sane values for startup
  * 
  * @todo figure out calibration 
@@ -35,8 +35,8 @@ const int M2LPWM_OUTPUT = 11;
 
 const int CH1 = 2;
 const int CH2 = 3;
-const int CH3 = 23;
-const int CH4 = 24;
+const int CH3 = A0;
+const int CH4 = A1;
 
 const int ENGINE_ENABLE_OUT = 7;
 const int STARTER_OUTPUT = 8;
@@ -53,8 +53,8 @@ void setup()
   pinMode(M2RPWM_OUTPUT, OUTPUT);
   pinMode(M2LPWM_OUTPUT, OUTPUT);
 
-  pinMode(CH3, INPUT);
-  pinMode(CH4, INPUT);
+  // pinMode(CH3, INPUT);
+  // pinMode(CH4, INPUT);
 
   pinMode(ENGINE_ENABLE_OUT, OUTPUT);
   pinMode(STARTER_OUTPUT, OUTPUT);
@@ -62,8 +62,8 @@ void setup()
   digitalWrite(ENGINE_ENABLE_OUT, engineEnabled);
   digitalWrite(STARTER_OUTPUT, LOW);
 
-  attachInterrupt(digitalPinToInterrupt(2), risingCh1, RISING);
-  attachInterrupt(digitalPinToInterrupt(3), risingCh2, RISING);
+  attachInterrupt(digitalPinToInterrupt(CH1), risingCh1, RISING);
+  attachInterrupt(digitalPinToInterrupt(CH2), risingCh2, RISING);
 
   Serial.println(F("Mihilica ready."));
 
@@ -72,33 +72,33 @@ void setup()
  
 void loop() 
 {
-  Serial.print("CH1 val: ");
-  Serial.println(ch1_value);
+  // Serial.print("CH1 val: ");
+  // Serial.println(ch1_value);
 
-  Serial.print("CH2 val: ");
-  Serial.println(ch2_value);
+  // Serial.print("CH2 val: ");
+  // Serial.println(ch2_value);
 
   Serial.print("CH3 val: ");
   Serial.println(analogRead(CH3));
 
-  Serial.print("CH4 val: ");
-  Serial.println(analogRead(CH4));
+  // Serial.print("CH4 val: ");
+  // Serial.println(analogRead(CH4));
 
   handleIdle();
 
   if(analogRead(CH3) > 700) {
       engineEnabled = 1;
-      digitalWrite(ENGINE_ENABLE_OUT, HIGH);
+      // digitalWrite(ENGINE_ENABLE_OUT, HIGH);
   } else {
       engineEnabled = 0;
-      digitalWrite(ENGINE_ENABLE_OUT, LOW);
+      // digitalWrite(ENGINE_ENABLE_OUT, LOW);
   }
 
 
   if(analogRead(CH4) > 700) {
-    digitalWrite(STARTER_OUTPUT, HIGH);
+    // digitalWrite(STARTER_OUTPUT, HIGH);
   } else {
-    digitalWrite(STARTER_OUTPUT, LOW);
+    // digitalWrite(STARTER_OUTPUT, LOW);
   }
 
 
@@ -122,29 +122,29 @@ void loop()
     }
 
     /** Motor 2 **/
-  if(!isIdle(ch2_value)) {
-    if (ch2_value > 1500)
-    {
-      int motor2Value = map(ch2_value, 1500, ch2MaxInputSignal, 0, 255);
-      // reverse rotation
-      analogWrite(M2LPWM_OUTPUT, 0);
-      analogWrite(M2RPWM_OUTPUT, motor2Value);
+    if(!isIdle(ch2_value)) {
+      if (ch2_value > 1500)
+      {
+        int motor2Value = map(ch2_value, 1500, ch2MaxInputSignal, 0, 255);
+        // reverse rotation
+        analogWrite(M2LPWM_OUTPUT, 0);
+        analogWrite(M2RPWM_OUTPUT, motor2Value);
+      }
+      else
+      {
+        int motor2Value = map(ch2_value, ch2MinInputSignal, 1500, 255, 0);
+        // forward rotation
+        analogWrite(M2RPWM_OUTPUT, 0);
+        analogWrite(M2LPWM_OUTPUT, motor2Value);
+      }
     }
-    else
-    {
-      int motor2Value = map(ch2_value, ch2MinInputSignal, 1500, 255, 0);
-      // forward rotation
-      analogWrite(M2RPWM_OUTPUT, 0);
-      analogWrite(M2LPWM_OUTPUT, motor2Value);
-    }
-  }
   }
 }
 
 void calibrate() {
   // turn on LED to signal the start of the calibration period:
-  pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
+  // pinMode(13, OUTPUT);
+  // digitalWrite(13, HIGH);
 
   // calibrate during the first five seconds
   while (millis() < 5000) {
@@ -183,7 +183,7 @@ void calibrate() {
   Serial.println(ch2MaxInputSignal);
 
   // signal the end of the calibration period
-  digitalWrite(13, LOW);
+  // digitalWrite(13, LOW);
 }
 
 bool isIdle(int channelValue) 
@@ -225,7 +225,7 @@ void fallingCh1() {
 
 void risingCh2() {
   attachInterrupt(digitalPinToInterrupt(CH2), fallingCh2, FALLING);
-  ch1_prev_time = micros();
+  ch2_prev_time = micros();
 }
  
 void fallingCh2() {
