@@ -5,22 +5,26 @@
 volatile int ch1Value = 1500;
 volatile int ch2Value = 1500;
 
-volatile bool ch3Value = 0;
-volatile bool ch4Value = 0;
+volatile int ch3Value = 1500;
+volatile int ch4Value = 1500;
 
 const int deadband = 50;
 const int centerSignal = 1500;
+
+int ch1MinInputSignal = 900;
+int ch1MaxInputSignal = 2100;
+
+int ch2MinInputSignal = 900;
+int ch2MaxInputSignal = 2100;
+
+int rcMinSignal = 900;
+int rcMaxSignal = 2100;
 
 /**
  * Some sane values for startup
  * 
  * @todo figure out calibration 
  * **/
-int ch1MinInputSignal = 900;
-int ch1MaxInputSignal = 2100;
-
-int ch2MinInputSignal = 900;
-int ch2MaxInputSignal = 2100;
 
 //PIN Configurations
 const int M1RPWM_OUTPUT = 5; // Arduino PWM output pin 5; connect to IBT-2 pin 1 (RPWM)
@@ -29,13 +33,16 @@ const int M1LPWM_OUTPUT = 6; // Arduino PWM output pin 6; connect to IBT-2 pin 2
 const int M2RPWM_OUTPUT = 10;
 const int M2LPWM_OUTPUT = 11;
 
-const int CH1 = 2;
-const int CH2 = 3;
-const int CH3 = A0;
-const int CH4 = A1;
+const int CH1 = A0;
+const int CH2 = A1;
+const int CH3 = A2;
+const int CH4 = A3;
 
 const int ENGINE_ENABLE_OUT = 7;
 const int STARTER_OUTPUT = 8;
+
+int motor1Value;
+int motor2Value;
 
 void setup() 
 {
@@ -66,10 +73,26 @@ void setup()
 void loop() 
 {
 
-  ch1Value = readChannel(CH1, ch1MinInputSignal, ch2MaxInputSignal, centerSignal);
+  ch1Value = readChannel(CH1, ch1MinInputSignal, ch1MaxInputSignal, centerSignal);
   ch2Value = readChannel(CH2, ch2MinInputSignal, ch2MaxInputSignal, centerSignal);
-  ch3Value = readSwitch(CH3, false);
-  ch4Value = readSwitch(CH4, false);
+  ch3Value = readChannel(CH3, rcMinSignal, rcMaxSignal, centerSignal);
+  ch4Value = readChannel(CH4, rcMinSignal, rcMaxSignal, centerSignal);
+
+  Serial.print("Ch1: ");
+  Serial.print(ch1Value);
+  Serial.print(" ");
+
+  Serial.print("Ch2: ");
+  Serial.print(ch2Value);
+  Serial.print(" ");
+
+  Serial.print("Ch3: ");
+  Serial.print(ch3Value);
+  Serial.print(" ");
+
+  Serial.print("Ch4: ");
+  Serial.print(ch4Value);
+  Serial.println(" ");
 
   if(!ch3Value) {
       digitalWrite(ENGINE_ENABLE_OUT, HIGH);
@@ -83,7 +106,6 @@ void loop()
     digitalWrite(STARTER_OUTPUT, LOW);
   }
 
-  int motor1Value;
   /** Motor 1 **/
 
   if (ch1Value > centerSignal)
@@ -111,7 +133,6 @@ void loop()
   }
 
 
-  int motor2Value;
   /** Motor 2 **/
 
   if (ch2Value > centerSignal)
@@ -136,50 +157,6 @@ void loop()
   }
 }
 
-void calibrate() {
-  // turn on LED to signal the start of the calibration period:
-  // pinMode(13, OUTPUT);
-  // digitalWrite(13, HIGH);
-
-  // calibrate during the first five seconds
-  while (millis() < 5000) {
-    Serial.println(ch1Value);
-    // record the maximum sensor value
-    if(ch1Value > 800 && ch1Value < 2500) { //Sanity check
-      if (ch1Value > ch1MaxInputSignal) {
-      ch1MaxInputSignal = ch1Value;
-      }
-
-      // record the minimum sensor value
-      if (ch1Value < ch1MinInputSignal) {
-        ch1MinInputSignal = ch1Value;
-      }
-    }
-
-    // record the maximum sensor value
-    if (ch2Value > ch2MaxInputSignal) {
-      ch2MaxInputSignal = ch2Value;
-    }
-
-    // record the minimum sensor value
-    if (ch2Value < ch2MinInputSignal) {
-      ch2MinInputSignal = ch2Value;
-    }
-  }
-
-  Serial.print(F("Channel 1 min: "));
-  Serial.println(ch1MinInputSignal);
-  Serial.print(F("Channel 1 max: "));
-  Serial.println(ch1MaxInputSignal);
-
-  Serial.print(F("Channel 2 min: "));
-  Serial.println(ch2MinInputSignal);
-  Serial.print(F("Channel 2 max: "));
-  Serial.println(ch2MaxInputSignal);
-
-  // signal the end of the calibration period
-  // digitalWrite(13, LOW);
-}
 
 bool isIdle(int channelValue) 
 {
@@ -189,7 +166,7 @@ bool isIdle(int channelValue)
 // Read the number of a given channel and convert to the range provided.
 // If the channel is off, return the default value
 int readChannel(int channelInput, int minLimit, int maxLimit, int defaultValue){
-  int ch = pulseIn(channelInput, HIGH, 30000);
+  int ch = pulseIn(channelInput, HIGH);
   
   //ch must be between ~1000-2000 for servo signals
   if (ch < 100) return defaultValue;
@@ -197,7 +174,7 @@ int readChannel(int channelInput, int minLimit, int maxLimit, int defaultValue){
   return constrain(ch, minLimit, maxLimit);
 }
 
-// Red the channel and return a boolean value
+// Read the channel and return a boolean value
 bool readSwitch(byte channelInput, bool defaultValue){
   int intDefaultValue = (defaultValue) ? 100 : 0;
   
