@@ -11,11 +11,11 @@ volatile int ch4Value = 1500;
 const int deadband = 50;
 const int centerSignal = 1500;
 
-int ch1MinInputSignal = 900;
-int ch1MaxInputSignal = 2100;
+int ch1MinInputSignal = 1000;
+int ch1MaxInputSignal = 1900;
 
-int ch2MinInputSignal = 900;
-int ch2MaxInputSignal = 2100;
+int ch2MinInputSignal = 1000;
+int ch2MaxInputSignal = 1900;
 
 int rcMinSignal = 900;
 int rcMaxSignal = 2100;
@@ -94,13 +94,13 @@ void loop()
   Serial.print(ch4Value);
   Serial.println(" ");
 
-  if(!ch3Value) {
+  if(ch3Value < centerSignal) {
       digitalWrite(ENGINE_ENABLE_OUT, HIGH);
   } else {
       digitalWrite(ENGINE_ENABLE_OUT, LOW);
   }
 
-  if(!ch4Value) {
+  if(ch4Value < centerSignal) {
     digitalWrite(STARTER_OUTPUT, HIGH);
   } else {
     digitalWrite(STARTER_OUTPUT, LOW);
@@ -155,6 +155,12 @@ void loop()
     analogWrite(M2RPWM_OUTPUT, 0);
     analogWrite(M2LPWM_OUTPUT, motor2Value);
   }
+
+  // Serial.print("Motor1: ");
+  // Serial.print(motor1Value);
+
+  // Serial.print("Motor2: ");
+  // Serial.println(motor2Value);
 }
 
 
