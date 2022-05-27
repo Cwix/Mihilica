@@ -78,21 +78,21 @@ void loop()
   ch3Value = readChannel(CH3, rcMinSignal, rcMaxSignal, centerSignal);
   ch4Value = readChannel(CH4, rcMinSignal, rcMaxSignal, centerSignal);
 
-  Serial.print("Ch1: ");
-  Serial.print(ch1Value);
-  Serial.print(" ");
+  // Serial.print("Ch1: ");
+  // Serial.print(ch1Value);
+  // Serial.print(" ");
 
-  Serial.print("Ch2: ");
-  Serial.print(ch2Value);
-  Serial.print(" ");
+  // Serial.print("Ch2: ");
+  // Serial.print(ch2Value);
+  // Serial.print(" ");
 
-  Serial.print("Ch3: ");
-  Serial.print(ch3Value);
-  Serial.print(" ");
+  // Serial.print("Ch3: ");
+  // Serial.print(ch3Value);
+  // Serial.print(" ");
 
-  Serial.print("Ch4: ");
-  Serial.print(ch4Value);
-  Serial.println(" ");
+  // Serial.print("Ch4: ");
+  // Serial.print(ch4Value);
+  // Serial.println(" ");
 
   if(ch3Value < centerSignal) {
       digitalWrite(ENGINE_ENABLE_OUT, HIGH);
@@ -108,59 +108,55 @@ void loop()
 
   /** Motor 1 **/
 
+  if(isIdle(ch1Value)) {
+      motor1Value = 0;
+  } else {
   if (ch1Value > centerSignal)
-  {
-    motor1Value = map(ch1Value, centerSignal, ch1MaxInputSignal, 0, 255);
+    {
+      motor1Value = map(ch1Value, centerSignal, ch1MaxInputSignal, 0, 255);
 
-    if(isIdle(ch1Value)) {
-      motor1Value = 0;
+      // reverse rotation
+      analogWrite(M1LPWM_OUTPUT, 0);
+      analogWrite(M1RPWM_OUTPUT, motor1Value);
     }
-    
-    // reverse rotation
-    analogWrite(M1LPWM_OUTPUT, 0);
-    analogWrite(M1RPWM_OUTPUT, motor1Value);
-  }
-  else
-  {
-    motor1Value = map(ch1Value, ch1MinInputSignal, centerSignal, 255, 0);
-    
-    if(isIdle(ch1Value)) {
-      motor1Value = 0;
+    else
+    {
+      motor1Value = map(ch1Value, ch1MinInputSignal, centerSignal, 255, 0);
+      
+      // forward rotation
+      analogWrite(M1RPWM_OUTPUT, 0);
+      analogWrite(M1LPWM_OUTPUT, motor1Value);
     }
-    // forward rotation
-    analogWrite(M1RPWM_OUTPUT, 0);
-    analogWrite(M1LPWM_OUTPUT, motor1Value);
   }
-
 
   /** Motor 2 **/
 
-  if (ch2Value > centerSignal)
-  {
-    motor2Value = map(ch2Value, centerSignal, ch2MaxInputSignal, 0, 255);
-    if(isIdle(ch2Value)) {
+  if(isIdle(ch2Value)) {
     motor2Value = 0;
-  }
-    // reverse rotation
-    analogWrite(M2LPWM_OUTPUT, 0);
-    analogWrite(M2RPWM_OUTPUT, motor2Value);
-  }
-  else
-  {
-    motor2Value = map(ch2Value, ch2MinInputSignal, centerSignal, 255, 0);
-    if(isIdle(ch2Value)) {
-      motor2Value = 0;
+  } else {
+    if (ch2Value > centerSignal)
+    {
+      motor2Value = map(ch2Value, centerSignal, ch2MaxInputSignal, 0, 255);
+      
+      // reverse rotation
+      analogWrite(M2LPWM_OUTPUT, 0);
+      analogWrite(M2RPWM_OUTPUT, motor2Value);
     }
-    // forward rotation
-    analogWrite(M2RPWM_OUTPUT, 0);
-    analogWrite(M2LPWM_OUTPUT, motor2Value);
+    else
+    {
+      motor2Value = map(ch2Value, ch2MinInputSignal, centerSignal, 255, 0);
+      
+      // forward rotation
+      analogWrite(M2RPWM_OUTPUT, 0);
+      analogWrite(M2LPWM_OUTPUT, motor2Value);
+    }
   }
+  
+  Serial.print("Motor1: ");
+  Serial.print(motor1Value);
 
-  // Serial.print("Motor1: ");
-  // Serial.print(motor1Value);
-
-  // Serial.print("Motor2: ");
-  // Serial.println(motor2Value);
+  Serial.print("Motor2: ");
+  Serial.println(motor2Value);
 }
 
 
